@@ -34,6 +34,7 @@ type WsProxyFunction = {
     params?: RpcRequest["params"],
   ) => ReturnType<WsClient["call"]>;
   subscribe: () => ReturnType<WsClient["subscribe"]>;
+  listen: () => ReturnType<WsClient["listen"]>;
 };
 
 type WsProxy =
@@ -69,6 +70,7 @@ const wsProxyHandler = {
       const proxyFunction: WsProxyFunction = (args?) => client.call(name, args);
       proxyFunction.notify = (args?) => client.call(name, args, true);
       proxyFunction.subscribe = () => client.subscribe(name);
+      proxyFunction.listen = () => client.listen(name);
       return proxyFunction;
     }
   },
