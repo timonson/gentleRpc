@@ -6,11 +6,14 @@ export type RpcId = number | string | null;
 export type RpcParams = JsonArray | JsonObject;
 export type RpcMethod = string;
 
-export interface RpcRequest {
+export interface RpcNotification {
   jsonrpc: RpcVersion;
   method: RpcMethod;
-  id?: RpcId;
   params?: RpcParams;
+}
+
+export interface RpcRequest extends RpcNotification {
+  id?: RpcId;
 }
 
 export type RpcResponse = RpcSuccess | RpcFailure;

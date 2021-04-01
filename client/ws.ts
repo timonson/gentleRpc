@@ -1,5 +1,5 @@
 import { createRequest } from "./creation.ts";
-import { validateResponse } from "./validation.ts";
+import { validateResponse, validateRpcNotification } from "./validation.ts";
 import { BadServerDataError } from "./error.ts";
 
 import type { JsonValue, RpcRequest } from "../json_rpc_types.ts";
@@ -107,6 +107,25 @@ export class Client {
     }
   }
 
+  private async *iterateNotifications(
+    eventName: RpcRequest["method"],
+  ): AsyncGenerator<JsonValue> {
+    while (this.socket.readyState < 2) {
+      const payloadData = await this.payloadData;
+      if (payloadData === null) {
+        break;
+      }
+      const parsedData = JSON.parse(payloadData);
+
+      if (validateRpcNotification(parsedData)) {
+        const rpcNotification = parsedData;
+        if (rpcNotification.method === eventName) {
+          yield rpcNotification.params || null;
+        }
+      }
+    }
+  }
+
   call(
     method: RpcRequest["method"],
     params: RpcRequest["params"],
@@ -170,6 +189,14 @@ export class Client {
           }
         ))));
       },
+    };
+  }
+
+  listen(
+    eventName: RpcRequest["method"],
+  ) {
+    return {
+      generator: this.iterateNotifications(eventName),
     };
   }
 }
